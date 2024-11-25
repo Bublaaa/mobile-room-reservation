@@ -6,7 +6,8 @@
 //
 
 import SwiftUI
-
+import AlamoFire
+import SwiftyJSON
 struct ContentView: View {
     var body: some View {
         VStack {
