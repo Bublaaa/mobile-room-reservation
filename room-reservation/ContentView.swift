@@ -14,11 +14,10 @@ struct ContentView: View {
                         UserView(loginViewModel: loginViewModel)
                     }
                 } else {
-                    // Show the login screen
                     LoginView(loginViewModel: loginViewModel)
                 }
             }
-            .navigationBarHidden(true) // Hide navigation bar if needed
+            .navigationBarHidden(true)
         }
     }
 }

@@ -4,31 +4,35 @@ struct AdminView: View {
     @ObservedObject var loginViewModel: LoginViewModel  // Use the same instance
     
     var body: some View {
-        VStack {
-            // Content of the Admin View
-            Text("Welcome, Admin!")
-                .font(.largeTitle)
-                .padding()
-            
-            // Add other content that you'd like in your AdminView here
-            Spacer()
-            
-            // Bottom Navigation Menu
+        HStack {
+            Text("Admin Dashboard")
+            Button("Logout") {
+                loginViewModel.logout()
+            }
+            .padding()
+            .foregroundColor(.white)
+            .background(Color.red)
+            .cornerRadius(8)
+        }
+        NavigationView {  // Wrap TabView in a NavigationView to handle titles properly
             TabView {
                 RoomsMenuView()
                     .tabItem {
                         Label("Rooms", systemImage: "house.fill")
                     }
+                    .navigationBarTitle("Rooms", displayMode: .inline)
                 
                 ReservationsMenuView()
                     .tabItem {
                         Label("Reservation", systemImage: "calendar")
                     }
+                    .navigationBarTitle("Reservations", displayMode: .inline)
                 
-                UsersMenuView() // Pass the loginViewModel to UserView
+                UsersMenuView()
                     .tabItem {
                         Label("User", systemImage: "person.fill")
                     }
+                    .navigationBarTitle("Users", displayMode: .inline)
             }
             .accentColor(.blue)  // Customize the selected tab color (optional)
         }

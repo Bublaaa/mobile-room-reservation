@@ -31,7 +31,8 @@ struct UsersMenuView: View {
                                     .font(.subheadline)
                             }
                             .padding()
-                        })
+                        }).navigationTitle("User Detail")
+                        .navigationBarTitleDisplayMode(.inline)
                 }
             }
             
@@ -41,6 +42,5 @@ struct UsersMenuView: View {
         .onAppear {
             usersViewModel.fetchUsers()  // Fetch users when the view appears
         }
-        .navigationBarTitle("Users", displayMode: .inline)  // Optional: Set navigation bar title
     }
 }

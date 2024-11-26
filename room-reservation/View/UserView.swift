@@ -4,11 +4,8 @@ struct UserView: View {
     @ObservedObject var loginViewModel: LoginViewModel  // Use the same instance
     
     var body: some View {
-        VStack {
-            Text("Welcome, User!")
-                .font(.largeTitle)
-                .padding()
-
+        HStack {
+            Text("User Dashboard")
             Button("Logout") {
                 loginViewModel.logout()
             }
