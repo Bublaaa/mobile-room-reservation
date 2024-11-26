@@ -9,10 +9,14 @@ import SwiftUI
 
 struct ReservationsMenuView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
+        VStack {
+            Text("Reservation Section")
+                .font(.title)
+                .padding()
 
-#Preview {
-    ReservationsMenuView()
+            // Add the content specific to reservations here
+            Spacer()
+        }
+        .padding()
+    }
 }

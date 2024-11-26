@@ -5,17 +5,33 @@ struct AdminView: View {
     
     var body: some View {
         VStack {
+            // Content of the Admin View
             Text("Welcome, Admin!")
                 .font(.largeTitle)
                 .padding()
-
-            Button("Logout") {
-                loginViewModel.logout()
+            
+            // Add other content that you'd like in your AdminView here
+            Spacer()
+            
+            // Bottom Navigation Menu
+            TabView {
+                RoomsMenuView()
+                    .tabItem {
+                        Label("Rooms", systemImage: "house.fill")
+                    }
+                
+                ReservationsMenuView()
+                    .tabItem {
+                        Label("Reservation", systemImage: "calendar")
+                    }
+                
+                UsersMenuView() // Pass the loginViewModel to UserView
+                    .tabItem {
+                        Label("User", systemImage: "person.fill")
+                    }
             }
-            .padding()
-            .foregroundColor(.white)
-            .background(Color.red)
-            .cornerRadius(8)
+            .accentColor(.blue)  // Customize the selected tab color (optional)
         }
+        .padding()  // Add padding around the entire view (optional)
     }
 }

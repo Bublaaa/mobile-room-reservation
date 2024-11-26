@@ -9,10 +9,14 @@ import SwiftUI
 
 struct RoomsMenuView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
+        VStack {
+            Text("Rooms Section")
+                .font(.title)
+                .padding()
 
-#Preview {
-    RoomsMenuView()
+            // Add the content specific to rooms here
+            Spacer()
+        }
+        .padding()
+    }
 }
