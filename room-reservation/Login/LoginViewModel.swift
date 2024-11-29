@@ -8,7 +8,6 @@ class LoginViewModel: ObservableObject {
     @Published var isLoading = false
     
     private let apiHandler = APIHandler.shared
-    private let tokenKey = "authToken"
     
     init() {
         checkLoginStatus()
@@ -37,8 +36,8 @@ class LoginViewModel: ObservableObject {
     }
 
     private func saveToken(_ token: String) {
-        print("Saving token: \(token)")  // Debugging print
-        UserDefaults.standard.set(token, forKey: tokenKey)
+        print("Saving token: \(token)")
+        UserDefaults.standard.set(token, forKey: "tokenKey")
     }
     private func saveUserId(_ id: Int){
         print("Saving User Id : \(id)")
@@ -46,7 +45,7 @@ class LoginViewModel: ObservableObject {
     }
     
     private func loadToken() -> String? {
-        let token = UserDefaults.standard.string(forKey: tokenKey)
+        let token = UserDefaults.standard.string(forKey: "tokenKey")
         print("Loaded token: \(String(describing: token))")
         return token
     }
@@ -56,7 +55,7 @@ class LoginViewModel: ObservableObject {
         print(userId)
         if let token = loadToken() {
             print("Token found: \(token). Checking user status...")
-            apiHandler.getUser(id: userId, token: token) { [weak self] user in
+            apiHandler.getUser(id: userId) { [weak self] user in
                 guard let self = self else { return }
                 
                 if let user = user {
@@ -82,7 +81,7 @@ class LoginViewModel: ObservableObject {
     // Logout function
     func logout() {
         print("Logging out...")  // Debugging print
-        UserDefaults.standard.removeObject(forKey: tokenKey)
+        UserDefaults.standard.removeObject(forKey: "tokenKey")
         UserDefaults.standard.removeObject(forKey: "userId")
         self.user = nil
         self.isLoggedIn = false

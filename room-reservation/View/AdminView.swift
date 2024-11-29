@@ -1,38 +1,25 @@
 import SwiftUI
 
 struct AdminView: View {
-    @ObservedObject var loginViewModel: LoginViewModel  
-    
+    @ObservedObject var loginViewModel: LoginViewModel
     var body: some View {
-        HStack {
-            Button("Logout") {
-                loginViewModel.logout()
-            }
-            .padding()
-            .foregroundColor(.white)
-            .background(Color.red)
-            .cornerRadius(8)
-        }
         TabView {
+            UsersMenuView()
+                .tabItem {
+                    Label("User", systemImage: "person.fill")
+                }
+                .navigationTitle("Users")
             RoomsMenuView()
                 .tabItem {
                     Label("Rooms", systemImage: "house.fill")
                 }
-                .navigationBarTitle("Rooms", displayMode: .inline)
+                .navigationTitle("Rooms")
             
             ReservationsMenuView()
                 .tabItem {
                     Label("Reservation", systemImage: "calendar")
                 }
-                .navigationBarTitle("Reservations", displayMode: .inline)
-            
-            UsersMenuView()
-                .tabItem {
-                    Label("User", systemImage: "person.fill")
-                }
-                .navigationBarTitle("Users", displayMode: .inline)
+                .navigationTitle("Reservations")
         }
-        .accentColor(.blue)
-        
     }
 }

@@ -7,13 +7,28 @@ struct ContentView: View {
         NavigationView {
             VStack {
                 if loginViewModel.isLoggedIn {
-                    // Navigating based on role
                     if loginViewModel.user?.role == "admin" {
                         AdminView(loginViewModel: loginViewModel)
                             .navigationTitle("Admin Menu")
+                            .toolbar {
+                                ToolbarItemGroup(placement: .topBarTrailing) {
+                                    Button("Log out") {
+                                        loginViewModel.logout()
+                                    }
+                                    .foregroundColor(.red)
+                                }
+                            }
                     } else {
                         UserView(loginViewModel: loginViewModel)
                             .navigationTitle("Booker Menu")
+                            .toolbar {
+                                ToolbarItemGroup(placement: .topBarTrailing) {
+                                    Button("Log out") {
+                                        loginViewModel.logout()
+                                    }
+                                    .foregroundColor(.red)
+                                }
+                            }
                     }
                 } else {
                     LoginView(loginViewModel: loginViewModel)

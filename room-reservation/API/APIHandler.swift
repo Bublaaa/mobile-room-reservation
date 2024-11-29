@@ -44,11 +44,10 @@ class APIHandler: ObservableObject {
     func logout() {
         let url = baseURL + "/auth/logout"
         
-        guard let token = self.token else {
+        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
             self.errorMessage = "No token found"
             return
         }
-        
         let headers: HTTPHeaders = [
             "Accept": "application/json",
             "Authorization": "Bearer \(token)"
@@ -71,9 +70,8 @@ class APIHandler: ObservableObject {
     func getUsers(completion: @escaping (Result<[User], Error>) -> Void) {
         let url = baseURL + "/users"
         
-        guard let token = self.token else {
+        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
             self.errorMessage = "No token found"
-            completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No token found"])))
             return
         }
         
@@ -81,8 +79,6 @@ class APIHandler: ObservableObject {
             "Accept": "application/json",
             "Authorization": "Bearer \(token)"
         ]
-        
-        print("Requesting all users from: \(url)")  // Dsebugging print
         
         AF.request(url, method: .get, headers: headers)
             .validate()
@@ -104,7 +100,12 @@ class APIHandler: ObservableObject {
             }
     }
     //MARK: -- Fetch Logged In User Detail
-    func getUser(id: Int, token: String, completion: @escaping (User?) -> Void) {
+    func getUser(id: Int, completion: @escaping (User?) -> Void) {
+        
+        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
+            self.errorMessage = "No token found"
+            return
+        }
         let url = baseURL + "/users/\(id)"
         let headers: HTTPHeaders = [
             "Accept": "application/json",

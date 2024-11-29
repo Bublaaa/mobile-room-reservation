@@ -6,13 +6,7 @@ struct UserView: View {
     var body: some View {
         HStack {
             Text("User Dashboard")
-            Button("Logout") {
-                loginViewModel.logout()
-            }
-            .padding()
-            .foregroundColor(.white)
-            .background(Color.red)
-            .cornerRadius(8)
+        
         }
     }
 }
