@@ -11,34 +11,31 @@ class LoginViewModel: ObservableObject {
     private let tokenKey = "authToken"
     
     init() {
-//        getUser()
         checkLoginStatus()
     }
     
     func login(username: String, password: String) {
-        print("Login attempt for username: \(username)")  // Debugging print
+        print("Login attempt for username: \(username)")
         
-        isLoading = true
         errorMessage = nil
         
-        apiHandler.login(username: username, password: password)
-        
-        // Check the result after login attempt
-        if let user = apiHandler.user {
-            let token = apiHandler.token
-            print("Login successful. Token: \(token)")
-            self.isLoggedIn = true
-            self.user = user
-            self.saveToken(token ?? "")
-            self.saveUserId(user.id)
-        } else if let error = apiHandler.errorMessage {
-            print("Login failed. Error: \(error)")  // Debugging print
-            self.errorMessage = error
+        apiHandler.login(username: username, password: password) { [weak self] success, error in
+            guard let self = self else { return }
+            
+            if success, let user = self.apiHandler.user, let token = self.apiHandler.token {
+                print("Login successful. Token: \(token)")
+                self.isLoggedIn = true
+                self.user = user
+                print(user)
+                self.saveToken(token)
+                self.saveUserId(user.id)
+            } else if let error = error {
+                print("Login failed. Error: \(error)")
+                self.errorMessage = error
+            }
         }
-        
-        isLoading = false
     }
-    
+
     private func saveToken(_ token: String) {
         print("Saving token: \(token)")  // Debugging print
         UserDefaults.standard.set(token, forKey: tokenKey)
@@ -54,13 +51,9 @@ class LoginViewModel: ObservableObject {
         return token
     }
     
-    private func getUser() {
-        
-        
-    }
-    
     private func checkLoginStatus() {
         let userId = UserDefaults.standard.integer(forKey: "userId")
+        print(userId)
         if let token = loadToken() {
             print("Token found: \(token). Checking user status...")
             apiHandler.getUser(id: userId, token: token) { [weak self] user in
@@ -91,10 +84,10 @@ class LoginViewModel: ObservableObject {
         print("Logging out...")  // Debugging print
         UserDefaults.standard.removeObject(forKey: tokenKey)
         UserDefaults.standard.removeObject(forKey: "userId")
-        
         self.user = nil
         self.isLoggedIn = false
         
+        print(UserDefaults.standard.value(forKey: "userId"))
         print("User logged out. Token removed.")  // Debugging print
         apiHandler.logout()
     }

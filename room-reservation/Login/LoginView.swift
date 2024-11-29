@@ -28,21 +28,15 @@ struct LoginView: View {
                 )
             
             // Login Button or Loading Spinner
-            if loginViewModel.isLoading {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: Color.blue))
-                    .padding()
-            } else {
-                Button("Login") {
-                    loginViewModel.login(username: username, password: password)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(10)
-                .shadow(radius: 5)
+            Button("Login") {
+                loginViewModel.login(username: username, password: password)
             }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            .shadow(radius: 5)
             
             // Error Message
             if let errorMessage = loginViewModel.errorMessage {

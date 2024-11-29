@@ -11,8 +11,8 @@ class APIHandler: ObservableObject {
     
     let baseURL = "http://localhost:8000/api"
     
-    //    MARK: -- Logout
-    func login(username: String, password: String) {
+    //MARK: -- Login
+    func login(username: String, password: String, completion: @escaping (Bool, String?) -> Void) {
         let url = baseURL + "/auth/login"
         let parameters: [String: String] = [
             "username": username,
@@ -32,12 +32,15 @@ class APIHandler: ObservableObject {
                     self.token = json["token"].string
                     self.user = User(from: json["user"])
                     self.errorMessage = nil
+                    completion(true, nil)
                 case .failure(let error):
                     self.errorMessage = "Login failed: \(error.localizedDescription)"
+                    completion(false, self.errorMessage)
                 }
             }
     }
-    //    MARK: -- Logout
+
+    //MARK: -- Logout
     func logout() {
         let url = baseURL + "/auth/logout"
         
@@ -56,7 +59,6 @@ class APIHandler: ObservableObject {
             .responseJSON { response in
                 switch response.result {
                 case .success:
-                    // Clear token and user data after successful logout
                     self.token = nil
                     self.user = nil
                     self.errorMessage = nil
@@ -65,7 +67,7 @@ class APIHandler: ObservableObject {
                 }
             }
     }
-    //    MARK: -- Fetch All Users Detail
+    //MARK: -- Fetch All Users Detail
     func getUsers(completion: @escaping (Result<[User], Error>) -> Void) {
         let url = baseURL + "/users"
         
@@ -87,9 +89,7 @@ class APIHandler: ObservableObject {
             .responseJSON { response in
                 switch response.result {
                 case .success(let value):
-                    print("Successfully fetched data: \(value)")  // Debugging print
-                    
-                    // Access the 'data' key and parse the users array
+//                    print("Successfully fetched data: \(value)")
                     let json = JSON(value)
                     let usersArray = json["data"].arrayValue  // Access the 'data' field
                     let users = usersArray.map { User(from: $0) }
@@ -103,35 +103,29 @@ class APIHandler: ObservableObject {
                 }
             }
     }
-//    MARK: -- Fetch Logged In User Detail
+    //MARK: -- Fetch Logged In User Detail
     func getUser(id: Int, token: String, completion: @escaping (User?) -> Void) {
         let url = baseURL + "/users/\(id)"
         let headers: HTTPHeaders = [
             "Accept": "application/json",
             "Authorization": "Bearer \(token)"
         ]
-        
-        print("Requesting user details from: \(url)")
-        
         AF.request(url, method: .get, headers: headers)
             .validate()
             .responseJSON { response in
                 switch response.result {
                 case .success(let value):
                     let json = JSON(value)
-                    print("JSON Response: \(json)") // Debugging the full JSON response
-                    
+//                    print("JSON Response: \(json)")
                     let userData = json["data"]
-                    let user = User(from: userData) // Create User from the "data" JSON
-                    self.user = user // Optionally store it in the handler
-                    completion(user) // Pass the user back to the caller
-                    
+                    let user = User(from: userData)
+                    self.user = user
+                    completion(user)
                 case .failure(let error):
                     self.errorMessage = "Failed to fetch user details: \(error.localizedDescription)"
-                    print(self.errorMessage ?? "Unknown error")
-                    completion(nil) // Pass nil on failure
+//                    print(self.errorMessage ?? "Unknown error")
+                    completion(nil)
                 }
             }
     }
-
 }
