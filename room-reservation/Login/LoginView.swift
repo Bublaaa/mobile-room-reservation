@@ -7,21 +7,9 @@ struct LoginView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Spacer()
-            
-            VStack {
-                Text("Login")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.blue)
-            }
-            .padding(.bottom, 40)
-
             // Username TextField
             TextField("Username", text: $username)
                 .padding()
-                .frame(height: 50)
-                .background(Color(UIColor.systemGray6))
                 .cornerRadius(10)
                 .autocapitalization(.none)
                 .disableAutocorrection(true)
@@ -33,8 +21,6 @@ struct LoginView: View {
             // Password SecureField
             SecureField("Password", text: $password)
                 .padding()
-                .frame(height: 50)
-                .background(Color(UIColor.systemGray6))
                 .cornerRadius(10)
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
@@ -69,8 +55,6 @@ struct LoginView: View {
             Spacer()
         }
         .padding(.horizontal, 30)
-        .padding(.top, 50)
-        .background(Color(UIColor.systemBackground))
-        .ignoresSafeArea(.keyboard)
+        .padding(.top, 30)
     }
 }

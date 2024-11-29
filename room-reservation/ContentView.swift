@@ -10,14 +10,16 @@ struct ContentView: View {
                     // Navigating based on role
                     if loginViewModel.user?.role == "admin" {
                         AdminView(loginViewModel: loginViewModel)
+                            .navigationTitle("Admin Menu")
                     } else {
                         UserView(loginViewModel: loginViewModel)
+                            .navigationTitle("Booker Menu")
                     }
                 } else {
                     LoginView(loginViewModel: loginViewModel)
+                        .navigationTitle("Login")
                 }
             }
-            .navigationBarHidden(true)
         }
     }
 }

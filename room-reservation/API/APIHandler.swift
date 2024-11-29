@@ -11,7 +11,7 @@ class APIHandler: ObservableObject {
     
     let baseURL = "http://localhost:8000/api"
     
-    // Login function
+    //    MARK: -- Logout
     func login(username: String, password: String) {
         let url = baseURL + "/auth/login"
         let parameters: [String: String] = [
@@ -37,7 +37,7 @@ class APIHandler: ObservableObject {
                 }
             }
     }
-    // Logout function
+    //    MARK: -- Logout
     func logout() {
         let url = baseURL + "/auth/logout"
         
@@ -65,7 +65,7 @@ class APIHandler: ObservableObject {
                 }
             }
     }
-    // Get all users function with a completion handler
+    //    MARK: -- Fetch All Users Detail
     func getUsers(completion: @escaping (Result<[User], Error>) -> Void) {
         let url = baseURL + "/users"
         
@@ -80,7 +80,7 @@ class APIHandler: ObservableObject {
             "Authorization": "Bearer \(token)"
         ]
         
-        print("Requesting all users from: \(url)")  // Debugging print
+        print("Requesting all users from: \(url)")  // Dsebugging print
         
         AF.request(url, method: .get, headers: headers)
             .validate()
@@ -103,4 +103,35 @@ class APIHandler: ObservableObject {
                 }
             }
     }
+//    MARK: -- Fetch Logged In User Detail
+    func getUser(id: Int, token: String, completion: @escaping (User?) -> Void) {
+        let url = baseURL + "/users/\(id)"
+        let headers: HTTPHeaders = [
+            "Accept": "application/json",
+            "Authorization": "Bearer \(token)"
+        ]
+        
+        print("Requesting user details from: \(url)")
+        
+        AF.request(url, method: .get, headers: headers)
+            .validate()
+            .responseJSON { response in
+                switch response.result {
+                case .success(let value):
+                    let json = JSON(value)
+                    print("JSON Response: \(json)") // Debugging the full JSON response
+                    
+                    let userData = json["data"]
+                    let user = User(from: userData) // Create User from the "data" JSON
+                    self.user = user // Optionally store it in the handler
+                    completion(user) // Pass the user back to the caller
+                    
+                case .failure(let error):
+                    self.errorMessage = "Failed to fetch user details: \(error.localizedDescription)"
+                    print(self.errorMessage ?? "Unknown error")
+                    completion(nil) // Pass nil on failure
+                }
+            }
+    }
+
 }
