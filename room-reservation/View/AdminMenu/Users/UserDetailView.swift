@@ -9,6 +9,7 @@ struct UserDetailView: View {
     @State private var isChangePassword : Bool = false
     @State private var newPassword : String = ""
     @State private var confrimNewPassword : String = ""
+    @State private var showDeleteModal = false
     
     let roles = ["admin", "user"]
     
@@ -42,16 +43,35 @@ struct UserDetailView: View {
                             SecureField("Confirm New Password", text: $confrimNewPassword)
                         }
                     }
+                    Section(header: Text("Aciton")){
+                        Button("Save"){
+                            print("Save Clicked")
+                        }
+                        Button("Delete Account"){
+                            print("Delete Clicked")
+                            showDeleteModal = true
+                        }
+                        .foregroundStyle(.red)
+                        .confirmationDialog("Change background", isPresented: $showDeleteModal) {
+                            Button("Yes") {
+                                print("Confirmation Cliked")
+                            }
+                            .foregroundStyle(.red)
+                            Button("Cancel", role: .cancel) { }
+                        } message: {
+                            Text("Are you sure to delete this account?")
+                        }
+                    }
                 }
             }
-            .navigationBarTitle("Edit User Detail", displayMode: .inline)
-            .navigationBarItems(trailing: Button(action: {
-                saveUserDetails()
-            }) {
-                Text("Save")
-            }
-                .foregroundColor(.blue))
-            .padding()
+            .navigationBarTitle("Edit User Detail")
+//            .navigationBarItems(leading: Button(action: {
+//                saveUserDetails()
+//            }) {
+//                Text("Save")
+//            }
+//                .foregroundColor(.blue))
+//            .padding()
         }
     }
     
