@@ -5,7 +5,7 @@ struct UsersMenuView: View {
     @State private var selectedUser: User?
     
     var body: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: 20) {
             if usersViewModel.isLoading {
                 ProgressView("Loading users...")
                     .padding()
@@ -28,6 +28,16 @@ struct UsersMenuView: View {
                     
                 }
             }
+            Button("Register") {
+                print("register clicked")
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+            .shadow(radius: 5)
+            Spacer()
         }
         .onAppear {
             usersViewModel.fetchUsers()  // Fetch users when the view appears

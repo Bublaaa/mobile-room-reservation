@@ -101,7 +101,6 @@ class APIHandler: ObservableObject {
     }
     //MARK: -- Fetch Logged In User Detail
     func getUser(id: Int, completion: @escaping (User?) -> Void) {
-        
         guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
             self.errorMessage = "No token found"
             return
@@ -125,6 +124,69 @@ class APIHandler: ObservableObject {
                 case .failure(let error):
                     self.errorMessage = "Failed to fetch user details: \(error.localizedDescription)"
 //                    print(self.errorMessage ?? "Unknown error")
+                    completion(nil)
+                }
+            }
+    }
+    //MARK: -- Update User Detail
+    func updateUser(
+        id: Int,
+        username: String,
+        email: String,
+        role: String,
+        password: String?,
+        password_confirmation: String?,
+        completion: @escaping (User?) -> Void
+    ) {
+        let url = baseURL + "/users/\(id)"
+        
+        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
+            self.errorMessage = "No token found"
+            completion(nil)
+            return
+        }
+        
+        // Build parameters dynamically to exclude empty password fields
+        var parameters: [String: String] = [
+            "username": username,
+            "email": email,
+            "role": role
+        ]
+        if let password = password, !password.isEmpty,
+           let password_confirmation = password_confirmation, !password_confirmation.isEmpty {
+            parameters["password"] = password
+            parameters["password_confirmation"] = password_confirmation
+        }
+        
+        let headers: HTTPHeaders = [
+            "Accept": "application/json",
+            "Authorization": "Bearer \(token)"
+        ]
+        
+        // Debugging prints
+        print("Updating user at \(url) with parameters: \(parameters)")
+        
+        AF.request(url, method: .put, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
+            .validate()
+            .responseJSON { response in
+                switch response.result {
+                case .success(let value):
+                    let json = JSON(value)
+                    if let userData = json["data"].dictionary {
+                        let user = User(from: JSON(userData))
+                        self.user = user
+                        completion(user)
+                    } else {
+                        print("Invalid user data received: \(json)")
+                        self.errorMessage = "Failed to parse user data."
+                        completion(nil)
+                    }
+                case .failure(let error):
+                    print("Failed to update user: \(error.localizedDescription)")
+                    if let data = response.data, let serverError = String(data: data, encoding: .utf8) {
+                        print("Server error: \(serverError)")
+                    }
+                    self.errorMessage = "Failed to update user: \(error.localizedDescription)"
                     completion(nil)
                 }
             }

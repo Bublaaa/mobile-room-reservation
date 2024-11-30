@@ -1,14 +1,15 @@
 import SwiftUI
 
 struct UserDetailView: View {
+    @StateObject var usersViewModel = UsersViewModel()
     @State var user: User
     @State private var username: String
     @State private var email: String
     @State private var selectedRole: String
     @State private var isEditing = false
     @State private var isChangePassword : Bool = false
-    @State private var newPassword : String = ""
-    @State private var confrimNewPassword : String = ""
+    @State private var password : String = ""
+    @State private var password_confirmation : String = ""
     @State private var showDeleteModal = false
     
     let roles = ["admin", "user"]
@@ -23,10 +24,17 @@ struct UserDetailView: View {
     var body: some View {
         NavigationView {
             VStack {
+                if let errorMessage = usersViewModel.errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.caption)
+                }
                 Form {
                     Section(header: Text("User Information")) {
                         TextField("Username", text: $username)
+                            .autocapitalization(.none)
                         TextField("Email", text: $email)
+                            .autocapitalization(.none)
                         Picker("Role", selection: $selectedRole) {
                             ForEach(roles, id: \.self) { role in
                                 Text(role.capitalized).tag(role)
@@ -39,13 +47,20 @@ struct UserDetailView: View {
                     }
                     if isChangePassword {
                         Section(header: Text("Change Password")) {
-                            SecureField("New Password", text: $newPassword)
-                            SecureField("Confirm New Password", text: $confrimNewPassword)
+                            SecureField("New Password", text: $password)
+                            SecureField("Confirm New Password", text: $password_confirmation)
                         }
                     }
                     Section(header: Text("Aciton")){
                         Button("Save"){
-                            print("Save Clicked")
+                            usersViewModel.updateUser(
+                                id: user.id,
+                                username: username,
+                                email: email,
+                                role: selectedRole,
+                                password: isChangePassword ? password : nil,
+                                password_confirmation: isChangePassword ? password_confirmation : nil
+                            )
                         }
                         Button("Delete Account"){
                             print("Delete Clicked")
@@ -65,20 +80,6 @@ struct UserDetailView: View {
                 }
             }
             .navigationBarTitle("Edit User Detail")
-//            .navigationBarItems(leading: Button(action: {
-//                saveUserDetails()
-//            }) {
-//                Text("Save")
-//            }
-//                .foregroundColor(.blue))
-//            .padding()
         }
-    }
-    
-    private func saveUserDetails() {
-        print("User details saved: \(username), \(email), \(selectedRole)")
-        user.username = username
-        user.email = email
-        user.role = selectedRole
     }
 }

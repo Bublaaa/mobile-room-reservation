@@ -20,16 +20,15 @@ class LoginViewModel: ObservableObject {
         
         apiHandler.login(username: username, password: password) { [weak self] success, error in
             guard let self = self else { return }
-            
             if success, let user = self.apiHandler.user, let token = self.apiHandler.token {
-                print("Login successful. Token: \(token)")
+//                print("Login successful. Token: \(token)")
                 self.isLoggedIn = true
                 self.user = user
-                print(user)
+//                print(user)
                 self.saveToken(token)
                 self.saveUserId(user.id)
             } else if let error = error {
-                print("Login failed. Error: \(error)")
+//                print("Login failed. Error: \(error)")
                 self.errorMessage = error
             }
         }
@@ -46,18 +45,16 @@ class LoginViewModel: ObservableObject {
     
     private func loadToken() -> String? {
         let token = UserDefaults.standard.string(forKey: "tokenKey")
-        print("Loaded token: \(String(describing: token))")
+//        print("Loaded token: \(String(describing: token))")
         return token
     }
     
     private func checkLoginStatus() {
         let userId = UserDefaults.standard.integer(forKey: "userId")
-        print(userId)
         if let token = loadToken() {
             print("Token found: \(token). Checking user status...")
             apiHandler.getUser(id: userId) { [weak self] user in
                 guard let self = self else { return }
-                
                 if let user = user {
                     print("User fetched successfully: \(user)")
                     DispatchQueue.main.async {
@@ -68,11 +65,12 @@ class LoginViewModel: ObservableObject {
                     print("Failed to fetch user or invalid token.")
                     DispatchQueue.main.async {
                         self.isLoggedIn = false
+                        self.logout()
                     }
                 }
             }
         } else {
-            print("No token found. User is not logged in.")
+//            print("No token found. User is not logged in.")
             self.isLoggedIn = false
         }
     }
@@ -86,8 +84,8 @@ class LoginViewModel: ObservableObject {
         self.user = nil
         self.isLoggedIn = false
         
-        print(UserDefaults.standard.value(forKey: "userId"))
-        print("User logged out. Token removed.")  // Debugging print
+//        print(UserDefaults.standard.value(forKey: "userId"))
+//        print("User logged out. Token removed.")
         apiHandler.logout()
     }
 }
