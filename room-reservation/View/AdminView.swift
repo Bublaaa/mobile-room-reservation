@@ -8,18 +8,25 @@ struct AdminView: View {
                 .tabItem {
                     Label("User", systemImage: "person.fill")
                 }
-                .navigationTitle("Users")
             RoomsMenuView()
                 .tabItem {
                     Label("Rooms", systemImage: "house.fill")
                 }
-                .navigationTitle("Rooms")
             
             ReservationsMenuView()
                 .tabItem {
                     Label("Reservation", systemImage: "calendar")
                 }
-                .navigationTitle("Reservations")
+        }
+        .navigationTitle("Admin Menu")
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button("Log out") {
+                    loginViewModel.logout()
+                }
+                .foregroundColor(.red)
+            }
         }
     }
+        
 }

@@ -7,13 +7,30 @@ class UsersViewModel: ObservableObject {
     
     private let apiHandler = APIHandler.shared
     
+    //MARK: - Register New User
+    func registerUser(username: String, email: String, role: String, password: String, completion: @escaping (Bool) -> Void){
+        print("Registering username \(username) email \(email), role \(role), password \(password)")
+        apiHandler.addUser(username: username, email: email, role: role, password: password) { [weak self] success, error in
+            guard let self = self else { return }
+            if success {
+                // Optionally refresh the user list
+                self.fetchUsers()
+                completion(true)
+            } else {
+                self.errorMessage = error
+                completion(false)
+            }
+        }
+        self.fetchUsers()
+    }
+    
+    //MARK: - Get All Users
     func fetchUsers() {
         print("Fetching users...")
         apiHandler.getUsers { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let fetchedUsers):
-                    //                    print("Successfully fetched users: \(fetchedUsers)")
                     self.users = fetchedUsers
                     self.errorMessage = nil
                 case .failure(let error):
@@ -24,6 +41,7 @@ class UsersViewModel: ObservableObject {
         }
     }
     
+    //MARK: - Update User Detail
     func updateUser(
         id: Int,
         username: String,
@@ -32,7 +50,6 @@ class UsersViewModel: ObservableObject {
         password: String? = nil,
         password_confirmation: String? = nil
     ) {
-        print("Updating user with username: \(username)")
         
         apiHandler.updateUser(
             id: id,
@@ -52,5 +69,20 @@ class UsersViewModel: ObservableObject {
                 }
             }
         }
+    }
+    //MARK: - Delete User
+    func deleteUser(id: Int, completion: @escaping (Bool) -> Void){
+        apiHandler.deleteUser(id: id) { [weak self] success, error in
+            guard let self = self else { return }
+            if success {
+                // Optionally refresh the user list
+                self.fetchUsers()
+                completion(true)
+            } else {
+                self.errorMessage = error
+                completion(false)
+            }
+        }
+        self.fetchUsers()
     }
 }

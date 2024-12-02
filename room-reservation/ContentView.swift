@@ -9,15 +9,6 @@ struct ContentView: View {
                 if loginViewModel.isLoggedIn {
                     if loginViewModel.user?.role == "admin" {
                         AdminView(loginViewModel: loginViewModel)
-                            .navigationTitle("Admin Menu")
-                            .toolbar {
-                                ToolbarItemGroup(placement: .topBarTrailing) {
-                                    Button("Log out") {
-                                        loginViewModel.logout()
-                                    }
-                                    .foregroundColor(.red)
-                                }
-                            }
                     } else {
                         UserView(loginViewModel: loginViewModel)
                             .navigationTitle("Booker Menu")

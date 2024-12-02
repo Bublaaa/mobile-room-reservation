@@ -1,35 +1,39 @@
 import SwiftUI
 
 struct UserDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     @StateObject var usersViewModel = UsersViewModel()
     @State var user: User
     @State private var username: String
     @State private var email: String
     @State private var selectedRole: String
     @State private var isEditing = false
-    @State private var isChangePassword : Bool = false
-    @State private var password : String = ""
-    @State private var password_confirmation : String = ""
+    @State private var isChangePassword: Bool = false
+    @State private var password: String = ""
+    @State private var password_confirmation: String = ""
     @State private var showDeleteModal = false
-    
+
     let roles = ["admin", "user"]
-    
+
     init(user: User) {
         _user = State(initialValue: user)
         _username = State(initialValue: user.username)
         _email = State(initialValue: user.email)
         _selectedRole = State(initialValue: user.role)
     }
-    
+
     var body: some View {
         NavigationView {
             VStack {
+                // Error Message
                 if let errorMessage = usersViewModel.errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .font(.caption)
                 }
+
                 Form {
+                    // User Information
                     Section(header: Text("User Information")) {
                         TextField("Username", text: $username)
                             .autocapitalization(.none)
@@ -45,14 +49,18 @@ struct UserDetailView: View {
                         }
                         .toggleStyle(CheckboxToggleStyle())
                     }
+
+                    // Change Password
                     if isChangePassword {
                         Section(header: Text("Change Password")) {
                             SecureField("New Password", text: $password)
                             SecureField("Confirm New Password", text: $password_confirmation)
                         }
                     }
-                    Section(header: Text("Aciton")){
-                        Button("Save"){
+
+                    // Actions
+                    Section(header: Text("Action")) {
+                        Button("Save") {
                             usersViewModel.updateUser(
                                 id: user.id,
                                 username: username,
@@ -62,24 +70,25 @@ struct UserDetailView: View {
                                 password_confirmation: isChangePassword ? password_confirmation : nil
                             )
                         }
-                        Button("Delete Account"){
-                            print("Delete Clicked")
+
+                        Button("Delete Account") {
                             showDeleteModal = true
                         }
-                        .foregroundStyle(.red)
-                        .confirmationDialog("Change background", isPresented: $showDeleteModal) {
-                            Button("Yes") {
-                                print("Confirmation Cliked")
+                        .foregroundColor(.red)
+                        .confirmationDialog("Are you sure you want to delete this account?", isPresented: $showDeleteModal) {
+                            Button("Yes", role: .destructive) {
+                                usersViewModel.deleteUser(id: user.id) { success in
+                                    if success {
+                                        dismiss()
+                                    }
+                                }
                             }
-                            .foregroundStyle(.red)
-                            Button("Cancel", role: .cancel) { }
-                        } message: {
-                            Text("Are you sure to delete this account?")
+                            Button("Cancel", role: .cancel) {}
                         }
                     }
                 }
             }
-            .navigationBarTitle("Edit User Detail")
+            .navigationTitle("Edit User Detail")
         }
     }
 }
