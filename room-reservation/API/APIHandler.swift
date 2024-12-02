@@ -11,6 +11,24 @@ class APIHandler: ObservableObject {
     
     let baseURL = "http://localhost:8000/api"
     
+    private func getAuthHeaders() -> HTTPHeaders? {
+        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
+            self.errorMessage = "No token found. Please log in again."
+            return nil
+        }
+        return [
+            "Accept": "application/json",
+            "Authorization": "Bearer \(token)"
+        ]
+    }
+    
+    private func handleServerError(_ response: AFDataResponse<Any>, error: AFError) -> String {
+        if let data = response.data, let serverError = String(data: data, encoding: .utf8) {
+            return serverError
+        }
+        return error.localizedDescription
+    }
+    
     //MARK: - [Auth] Login Request
     func login(username: String, password: String, completion: @escaping (Bool, String?) -> Void) {
         let url = baseURL + "/auth/login"
@@ -31,27 +49,22 @@ class APIHandler: ObservableObject {
                     let json = JSON(value)
                     self.token = json["token"].string
                     self.user = User(from: json["user"])
-                    self.errorMessage = nil
                     completion(true, nil)
                 case .failure(let error):
-                    self.errorMessage = "Login failed: \(error.localizedDescription)"
-                    completion(false, self.errorMessage)
+                    let message = "Login failed: \(error.localizedDescription)"
+                    self.errorMessage = message
+                    completion(false, message)
                 }
             }
     }
     
-    //MARK: - [Auth] Logout Request
-    func logout() {
+    // MARK: - [Auth] Logout Request
+    func logout(completion: @escaping (Bool, String?) -> Void) {
         let url = baseURL + "/auth/logout"
-        
-        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
-            self.errorMessage = "No token found"
+        guard let headers = getAuthHeaders() else {
+            completion(false, "No valid token.")
             return
         }
-        let headers: HTTPHeaders = [
-            "Accept": "application/json",
-            "Authorization": "Bearer \(token)"
-        ]
         
         AF.request(url, method: .post, headers: headers)
             .validate()
@@ -60,9 +73,11 @@ class APIHandler: ObservableObject {
                 case .success:
                     self.token = nil
                     self.user = nil
-                    self.errorMessage = nil
+                    completion(true, nil)
                 case .failure(let error):
-                    self.errorMessage = "Logout failed: \(error.localizedDescription)"
+                    let message = "Logout failed: \(error.localizedDescription)"
+                    self.errorMessage = message
+                    completion(false, message)
                 }
             }
     }
@@ -71,31 +86,20 @@ class APIHandler: ObservableObject {
     func getUsers(completion: @escaping (Result<[User], Error>) -> Void) {
         let url = baseURL + "/users"
         
-        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
-            self.errorMessage = "No token found"
-            return
-        }
-        
-        let headers: HTTPHeaders = [
-            "Accept": "application/json",
-            "Authorization": "Bearer \(token)"
-        ]
+        guard let headers = getAuthHeaders() else { return }
         
         AF.request(url, method: .get, headers: headers)
             .validate()
             .responseJSON { response in
                 switch response.result {
                 case .success(let value):
-                    //print("Successfully fetched data: \(value)")
                     let json = JSON(value)
                     let usersArray = json["data"].arrayValue
                     let users = usersArray.map { User(from: $0) }
-                    
-                    //                    print("Parsed users: \(users)")
                     completion(.success(users))
                 case .failure(let error):
-                    print("Failed to fetch users: \(error.localizedDescription)")
-                    self.errorMessage = "Failed to fetch users: \(error.localizedDescription)"
+                    let serverError = self.handleServerError(response, error: error)
+                    self.errorMessage = "Failed to fetch users: \(serverError)"
                     completion(.failure(error))
                 }
             }
@@ -104,14 +108,7 @@ class APIHandler: ObservableObject {
     //MARK: - [Admin] [User] Create New User
     func addUser(username: String, email: String, role: String, password: String, completion: @escaping (Bool, String?) -> Void){
         let url = baseURL + "/users/register"
-        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
-            self.errorMessage = "No token found"
-            return
-        }
-        let headers: HTTPHeaders = [
-            "Accept": "application/json",
-            "Authorization": "Bearer \(token)"
-        ]
+        guard let headers = getAuthHeaders() else { return }
         let parameters: [String: String] = [
             "username": username,
             "email": email,
@@ -124,23 +121,10 @@ class APIHandler: ObservableObject {
                 switch response.result {
                 case .success(let value):
                     let json = JSON(value)
-                    if let userData = json["user"].dictionary {
-                        self.user = User(from: JSON(userData))
-                        self.errorMessage = nil
-                        completion(true, nil)
-                    } else {
-                        let error = "Failed to parse user data."
-                        self.errorMessage = error
-                        completion(false, error)
-                    }
-                    
+                    self.user = User(from: json["user"])
+                    completion(true, nil)
                 case .failure(let error):
-                    print("Add user failed: \(error.localizedDescription)")
-                    
-                    var serverError = error.localizedDescription
-                    if let data = response.data, let serverErrorString = String(data: data, encoding: .utf8) {
-                        serverError = serverErrorString
-                    }
+                    let serverError = self.handleServerError(response, error: error)
                     self.errorMessage = serverError
                     completion(false, serverError)
                 }
@@ -151,8 +135,7 @@ class APIHandler: ObservableObject {
     func updateUser(id: Int, username: String, email: String, role: String, password: String?, password_confirmation: String?, completion: @escaping (User?) -> Void) {
         let url = baseURL + "/users/\(id)"
         
-        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
-            self.errorMessage = "No token found"
+        guard let headers = getAuthHeaders() else {
             completion(nil)
             return
         }
@@ -169,32 +152,18 @@ class APIHandler: ObservableObject {
             parameters["password_confirmation"] = password_confirmation
         }
         
-        let headers: HTTPHeaders = [
-            "Accept": "application/json",
-            "Authorization": "Bearer \(token)"
-        ]
-        
         AF.request(url, method: .put, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
             .validate()
             .responseJSON { response in
                 switch response.result {
                 case .success(let value):
                     let json = JSON(value)
-                    if let userData = json["data"].dictionary {
-                        let user = User(from: JSON(userData))
-                        self.user = user
-                        completion(user)
-                    } else {
-                        print("Invalid user data received: \(json)")
-                        self.errorMessage = "Failed to parse user data."
-                        completion(nil)
-                    }
+                    let updatedUser = User(from: json["data"])
+                    self.user = updatedUser
+                    completion(updatedUser)
                 case .failure(let error):
-                    print("Failed to update user: \(error.localizedDescription)")
-                    if let data = response.data, let serverError = String(data: data, encoding: .utf8) {
-                        print("Server error: \(serverError)")
-                    }
-                    self.errorMessage = "Failed to update user: \(error.localizedDescription)"
+                    let serverError = self.handleServerError(response, error: error)
+                    self.errorMessage = "Failed to update user: \(serverError)"
                     completion(nil)
                 }
             }
@@ -204,15 +173,10 @@ class APIHandler: ObservableObject {
     func deleteUser(id: Int, completion: @escaping (Bool, String?) -> Void) {
         let url = baseURL + "/users/\(id)"
         
-        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
-            completion(false, "No token found")
+        guard let headers = getAuthHeaders() else {
+            completion(false, self.errorMessage)
             return
         }
-        
-        let headers: HTTPHeaders = [
-            "Accept": "application/json",
-            "Authorization": "Bearer \(token)"
-        ]
         
         AF.request(url, method: .delete, headers: headers)
             .validate()
@@ -221,11 +185,8 @@ class APIHandler: ObservableObject {
                 case .success:
                     completion(true, nil)
                 case .failure(let error):
-                    print("Delete user failed: \(error.localizedDescription)")
-                    var serverError = error.localizedDescription
-                    if let data = response.data, let serverErrorString = String(data: data, encoding: .utf8) {
-                        serverError = serverErrorString
-                    }
+                    let serverError = self.handleServerError(response, error: error)
+                    self.errorMessage = "Failed to delete user: \(serverError)"
                     completion(false, serverError)
                 }
             }
@@ -233,29 +194,21 @@ class APIHandler: ObservableObject {
     
     //MARK: - [Public] Fetch Logged In User Detail
     func getUser(id: Int, completion: @escaping (User?) -> Void) {
-        guard let token = UserDefaults.standard.string(forKey: "tokenKey") else {
-            self.errorMessage = "No token found"
-            return
-        }
+        guard let headers = getAuthHeaders() else { return }
         let url = baseURL + "/users/\(id)"
-        let headers: HTTPHeaders = [
-            "Accept": "application/json",
-            "Authorization": "Bearer \(token)"
-        ]
+        
         AF.request(url, method: .get, headers: headers)
             .validate()
             .responseJSON { response in
                 switch response.result {
                 case .success(let value):
                     let json = JSON(value)
-                    //                    print("JSON Response: \(json)")
                     let userData = json["data"]
                     let user = User(from: userData)
                     self.user = user
                     completion(user)
                 case .failure(let error):
                     self.errorMessage = "Failed to fetch user details: \(error.localizedDescription)"
-                    //                    print(self.errorMessage ?? "Unknown error")
                     completion(nil)
                 }
             }

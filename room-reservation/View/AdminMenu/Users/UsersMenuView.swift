@@ -17,16 +17,13 @@ struct UsersMenuView: View {
                 .cornerRadius(10)
                 .shadow(radius: 5)
                 .sheet(isPresented: $isRegisterModal) {
-                    RegisterUserView()
+                    RegisterUserView(usersViewModel: usersViewModel)
                 }
             }
             .padding(.horizontal, 20)
             
             VStack(alignment: .leading, spacing: 30) {
-                if usersViewModel.isLoading {
-                    ProgressView("Loading users...")
-                        .padding()
-                } else if let errorMessage = usersViewModel.errorMessage {
+                if let errorMessage = usersViewModel.errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                         .padding()
@@ -47,7 +44,6 @@ struct UsersMenuView: View {
                 }
             }
         }
-        
         .onAppear {
             usersViewModel.fetchUsers()
         }

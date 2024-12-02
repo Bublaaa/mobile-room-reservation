@@ -2,66 +2,66 @@ import SwiftUI
 
 struct RegisterUserView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var usersViewModel = UsersViewModel()
+    @ObservedObject var usersViewModel: UsersViewModel
+    
     @State private var username: String = ""
     @State private var email: String = ""
     @State private var selectedRole: String = "user"
     @State private var password: String = ""
-    let roles = ["admin","user"]
+    let roles = ["admin", "user"]
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 30){
-            //            MARK: - Modal Header
-            HStack(alignment: .top){
+        VStack(alignment: .leading, spacing: 30) {
+            // MARK: - Modal Header
+            HStack(alignment: .top) {
                 Button("Cancel") {
                     dismiss()
                 }
                 Spacer()
-                Button("Save" , systemImage: "plus") {
+                Button("Save", systemImage: "plus") {
+                    // Register the user and only dismiss if successful
                     usersViewModel.registerUser(username: username, email: email, role: selectedRole, password: password) { success in
                         if success {
-                            dismiss()
+                            dismiss() // Dismiss if successful registration
                         } else {
-                            usersViewModel.errorMessage = usersViewModel.errorMessage
+                            usersViewModel.errorMessage = usersViewModel.errorMessage // Show error message if registration fails
                         }
                     }
-                    dismiss()
                 }
             }
             .padding(.horizontal, 30)
             .padding(.vertical, 30)
             .frame(maxWidth: .infinity)
             
-            //MARK: - Title
+            // MARK: - Title
             Text("Register Modal")
-                .frame(maxWidth: .infinity,alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 30)
-                .font(
-                    .largeTitle
-                        .bold()
-                )
+                .font(.largeTitle.bold())
             
-            List{
-                //MARK: - Username Field
+            List {
+                // MARK: - Username Field
                 TextField("Username", text: $username)
                     .cornerRadius(10)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
-                //MARK: - Email Field
+                
+                // MARK: - Email Field
                 TextField("Email", text: $email)
                     .cornerRadius(10)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
-                //MARK: - Role Picker
+                
+                // MARK: - Role Picker
                 Picker("Role", selection: $selectedRole) {
                     ForEach(roles, id: \.self) { role in
                         Text(role.capitalized).tag(role)
                     }
                 }
                 
-                //MARK: - Password Field
+                // MARK: - Password Field
                 SecureField("Password", text: $password)
                     .cornerRadius(10)
-                
             }
             Spacer()
         }
