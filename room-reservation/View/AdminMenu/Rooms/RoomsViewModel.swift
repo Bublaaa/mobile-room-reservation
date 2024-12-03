@@ -44,4 +44,42 @@ class RoomsViewModel: ObservableObject {
             }
         }
     }
+    
+    // MARK: - Add New Room
+    func addRoom(room_name: String, location: String, capacity: Int, description: String, completion: @escaping (Bool) -> Void) {
+        print("Add Room \(room_name), location \(location) , capacity \(capacity) , description \(description)")
+        
+        errorMessage = nil
+        apiHandler.addRoom(room_name: room_name, location: location, capacity: capacity, description: description){
+            [weak self] success, error in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    if success {
+                        self.fetchRooms(selectedLocation: location) // Refresh users after a successful registration
+                        completion(true)
+                    } else {
+                        self.errorMessage = error
+                        completion(false)
+                    }
+                }
+        }
+    }
+    
+    // MARK: - Delete Room
+    func deleteRoom(id: Int, completion: @escaping (Bool) -> Void) {
+        errorMessage = nil
+        apiHandler.deleteRoom(id: id) { [weak self] success, error in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                
+                if success {
+                    self.rooms.removeAll { $0.id == id }
+                    completion(true)
+                } else {
+                    self.errorMessage = error
+                    completion(false)
+                }
+            }
+        }
+    }
 }

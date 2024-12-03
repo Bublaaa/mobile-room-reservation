@@ -68,11 +68,12 @@ struct RoomDetailView: View {
                         .foregroundColor(.red)
                         .confirmationDialog("Are you sure you want to delete this room?", isPresented: $showDeleteModal) {
                             Button("Yes", role: .destructive) {
-//                                usersViewModel.deleteUser(id: user.id) { success in
-//                                    if success {
-//                                        dismiss()
-//                                    }
-//                                }
+                                roomsViewModel.deleteRoom(id: room.id) { success in
+                                    if success {
+                                        dismiss()
+                                        roomsViewModel.fetchRooms(selectedLocation: room.location)
+                                    }
+                                }
                             }
                             Button("Cancel", role: .cancel) {}
                         }

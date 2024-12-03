@@ -18,7 +18,7 @@ struct RoomsMenuView: View {
                 .cornerRadius(10)
                 .shadow(radius: 5)
                 .sheet(isPresented: $isAddNewRoom) {
-                    EmptyView()
+                    AddRoomView(roomsViewModel: roomsViewModel)
                 }
                 Picker("Picker Name", selection: $selectedLocation) {
                     ForEach(locations, id: \.self) { location in
