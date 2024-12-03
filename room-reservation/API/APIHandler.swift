@@ -214,4 +214,29 @@ class APIHandler: ObservableObject {
             }
     }
     
+    
+    //MARK: - [Public] [User] Fetch All Users Detail
+    func getRooms(completion: @escaping (Result<[Room], Error>) -> Void) {
+        let url = baseURL + "/rooms"
+        
+        guard let headers = getAuthHeaders() else { return }
+        
+        AF.request(url, method: .get, headers: headers)
+            .validate()
+            .responseJSON { response in
+                switch response.result {
+                case .success(let value):
+                    let json = JSON(value)
+                    let roomsArray = json["data"].arrayValue
+                    let rooms = roomsArray.map { Room(from: $0) }
+                    completion(.success(rooms))
+//                    print(rooms)
+                case .failure(let error):
+                    let serverError = self.handleServerError(response, error: error)
+                    self.errorMessage = "Failed to fetch users: \(serverError)"
+                    completion(.failure(error))
+                }
+            }
+    }
+    
 }
