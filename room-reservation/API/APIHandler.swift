@@ -6,6 +6,7 @@ class APIHandler: ObservableObject {
     static let shared = APIHandler()
     
     @Published var user: User?
+    @Published var room: Room?
     @Published var token: String?
     @Published var errorMessage: String?
     
@@ -215,7 +216,7 @@ class APIHandler: ObservableObject {
     }
     
     
-    //MARK: - [Public] [User] Fetch All Users Detail
+    //MARK: - [Public] [Room] Fetch All Rooms Detail
     func getRooms(completion: @escaping (Result<[Room], Error>) -> Void) {
         let url = baseURL + "/rooms"
         
@@ -235,6 +236,89 @@ class APIHandler: ObservableObject {
                     let serverError = self.handleServerError(response, error: error)
                     self.errorMessage = "Failed to fetch users: \(serverError)"
                     completion(.failure(error))
+                }
+            }
+    }
+    
+    //MARK: - [Admin] [Room] Create New Room
+    func addRoom(room_name: String, location: String, capacity: Int, description: String, completion: @escaping (Bool, String?) -> Void){
+        let url = baseURL + "/rooms"
+        guard let headers = getAuthHeaders() else { return }
+        let parameters: [String: Any] = [
+            "room_name": room_name,
+            "location": location,
+            "capacity": capacity,
+            "description": description
+        ]
+        AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
+            .validate()
+            .responseJSON { response in
+                switch response.result {
+                case .success(let value):
+                    let json = JSON(value)
+                    self.room = Room(from: json["user"])
+                    completion(true, nil)
+                case .failure(let error):
+                    let serverError = self.handleServerError(response, error: error)
+                    self.errorMessage = serverError
+                    completion(false, serverError)
+                }
+            }
+    }
+    
+    //MARK: - [Admin] [Room] Update Room Detail
+    func updateRoom(id: Int, room_name: String, location: String, capacity: Int, description: String, completion: @escaping (Room?) -> Void) {
+        let url = baseURL + "/rooms/\(id)"
+        
+        guard let headers = getAuthHeaders() else {
+            completion(nil)
+            return
+        }
+        
+        // Build parameters dynamically to exclude empty password fields
+        var parameters: [String: Any] = [
+            "room_name": room_name,
+            "location": location,
+            "capacity": capacity,
+            "description": description
+        ]
+        
+        AF.request(url, method: .put, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
+            .validate()
+            .responseJSON { response in
+                switch response.result {
+                case .success(let value):
+                    let json = JSON(value)
+                    let updatedRoom = Room(from: json["data"])
+                    self.room = updatedRoom
+                    completion(updatedRoom)
+                case .failure(let error):
+                    let serverError = self.handleServerError(response, error: error)
+                    self.errorMessage = "Failed to update user: \(serverError)"
+                    completion(nil)
+                }
+            }
+    }
+    
+    // MARK: - [Admin] [Room] Delete Room
+    func deleteRoom(id: Int, completion: @escaping (Bool, String?) -> Void) {
+        let url = baseURL + "/rooms/\(id)"
+        
+        guard let headers = getAuthHeaders() else {
+            completion(false, self.errorMessage)
+            return
+        }
+        
+        AF.request(url, method: .delete, headers: headers)
+            .validate()
+            .responseJSON { response in
+                switch response.result {
+                case .success:
+                    completion(true, nil)
+                case .failure(let error):
+                    let serverError = self.handleServerError(response, error: error)
+                    self.errorMessage = "Failed to delete user: \(serverError)"
+                    completion(false, serverError)
                 }
             }
     }

@@ -53,14 +53,13 @@ struct RoomDetailView: View {
                     // Actions
                     Section(header: Text("Action")) {
                         Button("Save") {
-//                            usersViewModel.updateUser(
-//                                id: user.id,
-//                                username: username,
-//                                email: email,
-//                                role: selectedRole,
-//                                password: isChangePassword ? password : nil,
-//                                password_confirmation: isChangePassword ? password_confirmation : nil
-//                            )
+                            roomsViewModel.updateRoom(
+                                id: room.id,
+                                room_name: room_name,
+                                location: location,
+                                capacity: capacity,
+                                description: description
+                            )
                         }
 
                         Button("Delete Account") {
