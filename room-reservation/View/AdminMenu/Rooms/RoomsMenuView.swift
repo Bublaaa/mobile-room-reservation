@@ -31,7 +31,7 @@ struct RoomsMenuView: View {
                     roomsViewModel.fetchRooms(selectedLocation: newValue)
                 }
             }
-            .padding(.horizontal,30)
+            .padding(.horizontal, 20)
             
             if let errorMessage = roomsViewModel.errorMessage {
                 Text(errorMessage)

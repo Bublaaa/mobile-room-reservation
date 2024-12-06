@@ -4,6 +4,10 @@ struct AdminView: View {
     @ObservedObject var loginViewModel: LoginViewModel
     var body: some View {
         TabView {
+            ReservationsMenuView()
+                .tabItem {
+                    Label("Reservation", systemImage: "calendar")
+                }
             
             RoomsMenuView()
                 .tabItem {
@@ -13,11 +17,6 @@ struct AdminView: View {
             UsersMenuView()
                 .tabItem {
                     Label("User", systemImage: "person.fill")
-                }
-        
-            ReservationsMenuView()
-                .tabItem {
-                    Label("Reservation", systemImage: "calendar")
                 }
         }
         .navigationTitle("Admin Menu")

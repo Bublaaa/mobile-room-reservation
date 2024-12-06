@@ -11,6 +11,7 @@ struct UsersMenuView: View {
                 Button("Register", systemImage: "plus") {
                     isRegisterModal.toggle()
                 }
+                .frame(maxWidth: .infinity)
                 .padding()
                 .background(Color.blue)
                 .foregroundColor(.white)

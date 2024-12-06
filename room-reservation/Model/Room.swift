@@ -1,7 +1,7 @@
 import Foundation
 import SwiftyJSON
 
-struct Room: Identifiable {
+struct Room: Identifiable, Codable {
     var id: Int
     var room_name: String
     var location: String

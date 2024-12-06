@@ -7,6 +7,7 @@ class APIHandler: ObservableObject {
     
     @Published var user: User?
     @Published var room: Room?
+    @Published var reservation: Reservation?
     @Published var token: String?
     @Published var errorMessage: String?
     
@@ -99,7 +100,7 @@ class APIHandler: ObservableObject {
                     let users = usersArray.map { User(from: $0) }
                     completion(.success(users))
                 case .failure(let error):
-                    let serverError = self.handleServerError(response, error: error)
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
                     self.errorMessage = "Failed to fetch users: \(serverError)"
                     completion(.failure(error))
                 }
@@ -125,7 +126,7 @@ class APIHandler: ObservableObject {
                     self.user = User(from: json["user"])
                     completion(true, nil)
                 case .failure(let error):
-                    let serverError = self.handleServerError(response, error: error)
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
                     self.errorMessage = serverError
                     completion(false, serverError)
                 }
@@ -163,7 +164,7 @@ class APIHandler: ObservableObject {
                     self.user = updatedUser
                     completion(updatedUser)
                 case .failure(let error):
-                    let serverError = self.handleServerError(response, error: error)
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
                     self.errorMessage = "Failed to update user: \(serverError)"
                     completion(nil)
                 }
@@ -186,7 +187,7 @@ class APIHandler: ObservableObject {
                 case .success:
                     completion(true, nil)
                 case .failure(let error):
-                    let serverError = self.handleServerError(response, error: error)
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
                     self.errorMessage = "Failed to delete user: \(serverError)"
                     completion(false, serverError)
                 }
@@ -233,7 +234,7 @@ class APIHandler: ObservableObject {
                     completion(.success(rooms))
 //                    print(rooms)
                 case .failure(let error):
-                    let serverError = self.handleServerError(response, error: error)
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
                     self.errorMessage = "Failed to fetch users: \(serverError)"
                     completion(.failure(error))
                 }
@@ -259,7 +260,7 @@ class APIHandler: ObservableObject {
                     self.room = Room(from: json["user"])
                     completion(true, nil)
                 case .failure(let error):
-                    let serverError = self.handleServerError(response, error: error)
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
                     self.errorMessage = serverError
                     completion(false, serverError)
                 }
@@ -275,7 +276,6 @@ class APIHandler: ObservableObject {
             return
         }
         
-        // Build parameters dynamically to exclude empty password fields
         var parameters: [String: Any] = [
             "room_name": room_name,
             "location": location,
@@ -293,7 +293,7 @@ class APIHandler: ObservableObject {
                     self.room = updatedRoom
                     completion(updatedRoom)
                 case .failure(let error):
-                    let serverError = self.handleServerError(response, error: error)
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
                     self.errorMessage = "Failed to update user: \(serverError)"
                     completion(nil)
                 }
@@ -316,11 +316,88 @@ class APIHandler: ObservableObject {
                 case .success:
                     completion(true, nil)
                 case .failure(let error):
-                    let serverError = self.handleServerError(response, error: error)
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
                     self.errorMessage = "Failed to delete user: \(serverError)"
                     completion(false, serverError)
                 }
             }
     }
     
+    //MARK: - [Admin] [Reservation] Update Reservation Status
+    func updateReservationStatus(id: Int, status: String, completion: @escaping (Reservation?) -> Void) {
+        let url = baseURL + "/reservations/status/\(id)"
+        
+        guard let headers = getAuthHeaders() else {
+            completion(nil)
+            return
+        }
+        
+        let parameters: [String: String] = [
+            "status": status,
+        ]
+        
+        AF.request(url, method: .put, parameters: parameters, encoding: JSONEncoding.default, headers: headers)
+            .validate()
+            .responseJSON { response in
+                switch response.result {
+                case .success(let value):
+                    let json = JSON(value)
+                   
+                    let updatedReservation = Reservation(from: json["data"])
+                    self.reservation = updatedReservation
+                    completion(updatedReservation)
+                case .failure(let error):
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
+                    self.errorMessage = "Failed to update reservation: \(serverError)"
+                    completion(nil)
+                }
+            }
+    }
+    
+    // MARK: - [Admin] [Reservation] Delete Reservation
+    func deleteReservation(id: Int, completion: @escaping (Bool, String?) -> Void) {
+        let url = baseURL + "/reservations/\(id)"
+        
+        guard let headers = getAuthHeaders() else {
+            completion(false, self.errorMessage)
+            return
+        }
+        
+        AF.request(url, method: .delete, headers: headers)
+            .validate()
+            .responseJSON { response in
+                switch response.result {
+                case .success:
+                    completion(true, nil)
+                case .failure(let error):
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
+                    self.errorMessage = "Failed to delete user: \(serverError)"
+                    completion(false, serverError)
+                }
+            }
+    }
+    
+    //MARK: - [Public] [Reservation] Fetch All Reservations
+    func getReservations(completion: @escaping (Result<[Reservation], Error>) -> Void) {
+        let url = baseURL + "/reservations"
+        
+        guard let headers = getAuthHeaders() else { return }
+        
+        AF.request(url, method: .get, headers: headers)
+            .validate()
+            .responseJSON { response in
+                switch response.result {
+                case .success(let value):
+                    let json = JSON(value)
+                    let reservationsArray = json["data"].arrayValue
+                    let reservations = reservationsArray.map { Reservation(from: $0) }
+                    completion(.success(reservations))
+//                    print(reservations)
+                case .failure(let error):
+                    let serverError = self.handleServerError(response, error: response.error ?? error)
+                    self.errorMessage = "Failed to fetch users: \(serverError)"
+                    completion(.failure(error))
+                }
+            }
+    }
 }

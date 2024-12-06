@@ -1,7 +1,7 @@
 import Foundation
 import SwiftyJSON
 
-struct User: Identifiable {
+struct User: Identifiable, Codable {
     var id: Int
     var username: String
     var email: String
